@@ -18,21 +18,26 @@ for full_path, rel_path in paths_input_images:
     video = video.astype('float32') / 255.
     print(full_path, video.shape)
     median_values = np.median(video, axis=0)
-    video_without_bkg = np.abs(video - median_values)
+    normalized_video = video - median_values
 
-    # Re-normalize between 0 and 255:
-    video_without_bkg = video_without_bkg - video_without_bkg.min()
-    video_without_bkg = ((video_without_bkg / video_without_bkg.max()) * 255.).astype('uint8')
-
+    # Re-normalize so that median value is fixed at value 128:
+    mask1 = normalized_video < 0.
+    mask2 = np.logical_not(mask1)
+    normalized_video_1 = normalized_video / normalized_video.min() # Array with values in [0, 1]
+    normalized_video_2 = normalized_video / normalized_video.max()# Array with values in [0, 127]
+    normalized_video[mask1] = normalized_video_1[mask1] * (-128.) # Array with values in [-128, 0]
+    normalized_video[mask2] = normalized_video_2[mask2] * 127. # Array with values in [0, 127]
+    normalized_video += 128.
+    normalized_video = normalized_video.astype('uint8')
 
     # Write results:
-    out_subdir = "bckgr_subtraction"
+    out_subdir = "bckgr_subtraction_v2"
     out_file = os.path.join(root_out_data_dir, out_subdir, rel_path)
     # Create out dir:
     out_dir = os.path.split(out_file)[0]
     shp_utils.check_dir_and_create(out_dir)
 
-    shp_utils.writeHDF5(video_without_bkg, out_file, "data")
+    shp_utils.writeHDF5(normalized_video, out_file, "data")
 
 print("Done")
 
