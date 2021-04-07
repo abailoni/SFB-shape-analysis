@@ -27,7 +27,7 @@ out_dir = os.path.join(get_scratch_dir(), "projects/SFB_viktor/processed_data/se
 paths_input_images = shp_utils.get_paths_input_files(root_data_dir, ".h5")
 
 for full_path, rel_path in paths_input_images:
-    if "_results.h5" in full_path:
+    if "_results.h5" in full_path and "axioobserver" in full_path:
         # Load segmentation:
         # Label 1 --> foreground
         # Label 2 --> background

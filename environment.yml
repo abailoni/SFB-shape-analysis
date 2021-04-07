@@ -1,0 +1,23 @@
+# run: conda env create --file environment.yml
+channels:
+  - abailoni
+  - conda-forge
+  - defaults
+dependencies:
+  - python
+  - pip
+  - numpy
+  - h5py
+  - pyyaml
+  - matplotlib
+  - pillow
+  - scipy
+  - scikit-image
+  - imageio
+  - nifty
+  - pip:
+      - tifffile
+      # works for regular pip packages
+#      - matplotlib==2.0.0  # pin version for pip
+#      # and for wheels
+#      - http://www.lfd.uci.edu/~gohlke/pythonlibs/bofhrmxk/opencv_python-3.1.0-cp35-none-win_amd64.whl

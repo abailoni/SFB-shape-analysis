@@ -3,8 +3,6 @@ matplotlib.use('Agg')
 from matplotlib import pyplot as plt
 import vigra
 import numpy as np
-import json
-import os
 
 import matplotlib.animation as manimation
 
