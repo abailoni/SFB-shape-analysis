@@ -9,7 +9,7 @@
 
 
 ### Usage
-Scripts can be found in the `scripts` folder. 
+Scripts can be found in the `scripts` folder (more documentation coming soon). 
 
 Other useful [ilastik](https://www.ilastik.org/download.html) documentation material:
 
