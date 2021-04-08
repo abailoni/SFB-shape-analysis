@@ -15,6 +15,7 @@ dependencies:
   - scikit-image
   - imageio
   - nifty
+  - vigra
   - pip:
       - tifffile
       # works for regular pip packages

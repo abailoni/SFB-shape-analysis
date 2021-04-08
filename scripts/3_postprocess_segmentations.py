@@ -1,15 +1,11 @@
-from PIL import Image
-import skimage.io
 import os
-import imageio
 from shapeAnalysis import utils as shp_utils
 import vigra
 import numpy as np
-
+import argparse
 from nifty import tools as ntools
 import tifffile
 
-SIZE_THRESH = 40
 
 def get_map_of_segment_sizes_in_segmentation(segmentation):
     """
@@ -19,54 +15,58 @@ def get_map_of_segment_sizes_in_segmentation(segmentation):
     return ntools.mapFeaturesToLabelArray(segmentation, node_sizes[:, None], nb_threads=-1).squeeze()
 
 
-# TODO: update
-from pathutils.get_dir_paths import get_scratch_dir
-root_data_dir = os.path.join(get_scratch_dir(), "projects/SFB_viktor/processed_data/segmentations_v3")
-out_dir = os.path.join(get_scratch_dir(), "projects/SFB_viktor/processed_data/segmentations_v3")
+if __name__ == '__main__':
+    parser = argparse.ArgumentParser()
+    parser.add_argument('--DATA_DIR', type=str)
+    parser.add_argument('--PROJECT_DIR', type=str)
+    parser.add_argument('--size_thresh', type=int, default=40)
+    parser.add_argument('--write_tif_images', type=bool, default=True)
+    args = parser.parse_args()
 
-paths_input_images = shp_utils.get_paths_input_files(root_data_dir, ".h5")
+    DATA_DIR = args.DATA_DIR
+    PROJECT_DIR = args.PROJECT_DIR
+    size_thresh = args.size_thresh
+    write_tif_images = args.write_tif_images
+    assert os.path.exists(PROJECT_DIR), "PROJECT_DIR not found: {}".format(PROJECT_DIR)
 
-for full_path, rel_path in paths_input_images:
-    if "_results.h5" in full_path and "axioobserver" in full_path:
-        # Load segmentation:
-        # Label 1 --> foreground
-        # Label 2 --> background
-        final_segmentation = shp_utils.readHDF5(full_path, "exported_data")
-        # Set background to zero, convert and get rid of last dimension:
-        final_segmentation = final_segmentation.astype('uint32')[..., 0]
-        final_segmentation[final_segmentation==2] = 0
+    segmentations_subdir = "segmentations"
 
-        # Run connected components and find distinct segments (singularly for every image in the stack):
-        for z in range(final_segmentation.shape[0]):
-            # Find connected segments:
-            segm_relabeled = vigra.analysis.labelImageWithBackground(final_segmentation[z])
+    segm_dir = os.path.join(PROJECT_DIR, segmentations_subdir)
+    paths_input_images = shp_utils.get_paths_input_files(segm_dir, ".h5")
 
-            # Find segment sizes:
-            segment_sizes = get_map_of_segment_sizes_in_segmentation(segm_relabeled)
 
-            # Delete segments that are smaller than the given threhsold:
-            final_segmentation[z][segment_sizes < SIZE_THRESH] = 0
+    for full_path, rel_path in paths_input_images:
+        if "_results.h5" in full_path:
+            # Load segmentation:
+            # Label 1 --> foreground
+            # Label 2 --> background
+            final_segmentation = shp_utils.readHDF5(full_path, "exported_data")
+            # Set background to zero, convert and get rid of last dimension:
+            final_segmentation = final_segmentation.astype('uint32')[..., 0]
+            final_segmentation[final_segmentation==2] = 0
 
-        # # Read raw data:
-        # raw_path = os.path.join(raw_data_dir, rel_path).replace("_results.h5", ".h5")
-        # raw = shp_utils.readHDF5(raw_path, "data")
+            # Run connected components and find distinct segments (singularly for every timeframe):
+            for z in range(final_segmentation.shape[0]):
+                # Find connected segments:
+                segm_relabeled = vigra.analysis.labelImageWithBackground(final_segmentation[z])
 
-        # Write new segmentation to file:
-        file_out_path = full_path.replace("_results.h5", "_postProcSegm.h5")
-        # shp_utils.writeHDF5(raw, file_out_path, "raw")
-        final_segmentation = final_segmentation.astype('uint8')
-        shp_utils.writeHDF5(final_segmentation, file_out_path, "data")
+                # Find segment sizes:
+                segment_sizes = get_map_of_segment_sizes_in_segmentation(segm_relabeled)
 
-        # Write as .tif stack:
-        final_segmentation[final_segmentation == 1] = 255
-        tifffile.imwrite(file_out_path.replace('.h5', '.tif'), final_segmentation, photometric='minisblack', compress=4)
-        print(rel_path, "written")
+                # Delete segments that are smaller than the given threhsold:
+                final_segmentation[z][segment_sizes < size_thresh] = 0
 
-        # from shapeAnalysis.video_utils import save_segmentation_video
-        # save_segmentation_video(raw, final_segmentation, file_out_path.replace(".h5", ".pdf"))
-        # break
+            # Write new segmentation to file:
+            file_out_path = full_path.replace("_results.h5", "_postProcSegm.h5")
+            final_segmentation = final_segmentation.astype('uint8')
+            shp_utils.writeHDF5(final_segmentation, file_out_path, "data")
 
-# shp_utils.check_dir_and_create(root_out_data_dir)
+            # Write as .tif stack:
+            if write_tif_images:
+                final_segmentation[final_segmentation == 1] = 255
+                tifffile.imwrite(file_out_path.replace('.h5', '.tif'), final_segmentation, photometric='minisblack', compress=4)
+            print(rel_path, "postprocessed!")
 
-print("Done")
+
+
 
