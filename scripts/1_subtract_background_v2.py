@@ -23,7 +23,7 @@ if __name__ == '__main__':
 
         # Normalize betwen 0 and 1 and take median along time-dimension:
         video = video.astype('float32') / 255.
-        print(full_path, video.shape)
+        print("Processing video {} with shape {}".format(rel_path, video.shape))
         median_values = np.median(video, axis=0)
         normalized_video = video - median_values
 

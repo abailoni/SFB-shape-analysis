@@ -36,7 +36,7 @@ if __name__ == '__main__':
 
 
     for full_path, rel_path in paths_input_images:
-        if "_results.h5" in full_path:
+        if "_segmentation.h5" in full_path:
             # Load segmentation:
             # Label 1 --> foreground
             # Label 2 --> background
@@ -57,7 +57,7 @@ if __name__ == '__main__':
                 final_segmentation[z][segment_sizes < size_thresh] = 0
 
             # Write new segmentation to file:
-            file_out_path = full_path.replace("_results.h5", "_postProcSegm.h5")
+            file_out_path = full_path.replace("_segmentation.h5", "_postProcSegm.h5")
             final_segmentation = final_segmentation.astype('uint8')
             shp_utils.writeHDF5(final_segmentation, file_out_path, "data")
 

@@ -30,7 +30,7 @@ if __name__ == '__main__':
         shp_utils.check_dir_and_create(file_out_dir)
 
         # Run ilastik in headless mode:
-        command = "{} --headless --readonly --input_axes=tyx --project={} --export_source=\"Simple Segmentation\" --output_filename_format={}/{{nickname}}_results.hdf5  --output_format=\"compressed hdf5\" --export_dtype=uint8 {}".format(path_ilastik, path_ilastik_proj, file_out_dir, full_path)
+        command = "{} --headless --readonly --input_axes=tyx --project={} --export_source=\"Simple Segmentation\" --output_filename_format={}/{{nickname}}_segmentation.hdf5  --output_format=\"compressed hdf5\" --export_dtype=uint8 {}".format(path_ilastik, path_ilastik_proj, file_out_dir, full_path)
         stream = os.popen(command)
         output = stream.read()
         print(rel_path, "processed.")

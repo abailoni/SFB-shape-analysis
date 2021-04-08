@@ -32,5 +32,6 @@ if __name__ == '__main__':
         # Write video in hdf5:
         out_file = full_path.replace(".tif", ".h5")
         shp_utils.writeHDF5(video, out_file, "data")
+        print(rel_path, "written")
 
 
